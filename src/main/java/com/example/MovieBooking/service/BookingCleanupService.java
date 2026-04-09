@@ -1,7 +1,6 @@
 package com.example.MovieBooking.service;
 
 import com.example.MovieBooking.entity.Booking;
-import com.example.MovieBooking.entity.ShowSeat;
 import com.example.MovieBooking.entity.type.BookingStatus;
 import com.example.MovieBooking.entity.type.SeatStatus;
 import com.example.MovieBooking.repository.BookingRepository;
@@ -24,7 +23,7 @@ public class BookingCleanupService {
     private final ShowSeatRepository showSeatRepository;
 
     // Runs every 1 minute
-    @Scheduled(fixedRate = 60000) // Every minute
+    //@Scheduled(fixedRate = 60000) // Every minute
     @Transactional
     public void cleanupHoldSeats() {
         LocalDateTime tenMinsAgo = LocalDateTime.now().minusMinutes(10);
@@ -37,7 +36,7 @@ public class BookingCleanupService {
         }
     }
 
-    @Scheduled(fixedRate = 60000) // Every 1 minute
+    //@Scheduled(fixedRate = 60000) // Every 1 minute
     @Transactional // ⚡ Crucial: Ensures both updates succeed or both fail
     public void cleanupExpiredBookings() {
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(10);
