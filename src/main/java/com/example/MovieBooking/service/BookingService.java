@@ -1,7 +1,7 @@
 package com.example.MovieBooking.service;
 
-import com.example.MovieBooking.dto.BookingResponseDto;
-import com.example.MovieBooking.dto.RequestDto.BookingRequestDto;
+import com.example.MovieBooking.dto.responseDto.BookingResponseDto;
+import com.example.MovieBooking.dto.requestDto.BookingRequestDto;
 import com.example.MovieBooking.entity.Booking;
 import com.example.MovieBooking.entity.Show;
 import com.example.MovieBooking.entity.ShowSeat;

@@ -1,13 +1,15 @@
 package com.example.MovieBooking.service;
-import com.example.MovieBooking.dto.RequestDto.ShowRequestDto;
-import com.example.MovieBooking.dto.ShowResponseDto;
-import com.example.MovieBooking.dto.RequestDto.ShowUpdateRequestDto;
+import com.example.MovieBooking.dto.requestDto.ShowRequestDto;
+import com.example.MovieBooking.dto.responseDto.ShowResponseDto;
+import com.example.MovieBooking.dto.requestDto.ShowUpdateRequestDto;
 import com.example.MovieBooking.dto.ShowSeatDto;
 import com.example.MovieBooking.entity.*;
 import com.example.MovieBooking.entity.type.SeatStatus;
 import com.example.MovieBooking.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -33,6 +35,7 @@ public class ShowService {
      * Creates a new show and automatically generates the seating inventory (ShowSeats).
      */
     @Transactional
+    @CacheEvict(cacheNames = "shows", allEntries = true)
     public ShowResponseDto createShow(ShowRequestDto showRequestDto) {
         Movie movie = movieRepository.findById(showRequestDto.getMovieId())
                 .orElseThrow(() -> new RuntimeException("Movie not found"));
@@ -91,6 +94,7 @@ public class ShowService {
      */
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "shows", key = "'all-admin'")
     public List<ShowResponseDto> getAllShows() {
         List<Show> shows = showRepository.findAll();
         return shows.stream()
@@ -102,6 +106,7 @@ public class ShowService {
      * Dynamic filtering for shows based on Movie, Theater, or Date.
      */
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "shows", key = "{#movieId, #city, #theaterId, #date}")
     public List<ShowResponseDto> getFilteredShows(Long movieId, String city, Long theaterId, LocalDate date) {
         LocalDateTime start = (date != null) ? date.atStartOfDay() : null;
         LocalDateTime end = (date != null) ? date.atTime(LocalTime.MAX) : null;
@@ -114,6 +119,7 @@ public class ShowService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "shows", key = "'id-' + #showId")
     public ShowResponseDto getShowById(Long showId) {
         Show show = showRepository.findById(showId)
                 .orElseThrow(() -> new RuntimeException("Show not found"));
@@ -137,6 +143,7 @@ public class ShowService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "shows", allEntries = true)
     public ShowResponseDto updateShow(Long showId, ShowUpdateRequestDto updateDto) {
         Show show = showRepository.findById(showId)
                 .orElseThrow(() -> new RuntimeException("Show not found"));
@@ -159,6 +166,7 @@ public class ShowService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "shows", allEntries = true)
     public void deleteShow(Long showId) {
         if (showSeatRepository.existsByShowIdAndStatus(showId, SeatStatus.BOOKED)) {
             throw new RuntimeException("Cannot delete show with active bookings.");
@@ -174,6 +182,7 @@ public class ShowService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "shows", key = "'theater-' + #theaterId")
     public List<ShowResponseDto> getShowsByTheaterId(Long theaterId) {
         List<Screen> screens = screenRepository.findByTheaterId(theaterId);
         return screens.stream()

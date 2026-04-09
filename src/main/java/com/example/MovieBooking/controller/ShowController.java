@@ -1,12 +1,13 @@
 package com.example.MovieBooking.controller;
 
-import com.example.MovieBooking.dto.RequestDto.ShowRequestDto;
-import com.example.MovieBooking.dto.ShowResponseDto;
-import com.example.MovieBooking.dto.RequestDto.ShowUpdateRequestDto;
+import com.example.MovieBooking.dto.requestDto.ShowRequestDto;
+import com.example.MovieBooking.dto.responseDto.ShowResponseDto;
+import com.example.MovieBooking.dto.requestDto.ShowUpdateRequestDto;
 import com.example.MovieBooking.dto.ShowSeatDto;
 import com.example.MovieBooking.service.ShowService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,11 +24,37 @@ public class ShowController {
     private final ShowService showService;
 
     /**
-     * Creates a new show (Admin Only)
-     * POST /api/shows
+     * Cache the filtered list of shows.
+     * The key is a combination of all parameters to ensure uniqueness.
      */
+    @GetMapping
+    public ResponseEntity<List<ShowResponseDto>> getShows(
+            @RequestParam(required = false) Long movieId,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) Long theaterId,
+            @RequestParam(required = false) LocalDate date
+    ){
+        return ResponseEntity.ok(showService.getFilteredShows(movieId, city, theaterId, date));
+    }
+
+    @GetMapping("/{showId}")
+    public ResponseEntity<ShowResponseDto> getShowById(@PathVariable Long showId) {
+        return ResponseEntity.ok(showService.getShowById(showId));
+    }
+
+    /**
+     * NO CACHING HERE.
+     * Always hit the DB for real-time seat availability.
+     */
+    @GetMapping("/{showId}/seats")
+    public ResponseEntity<List<ShowSeatDto>> getShowSeatLayout(@PathVariable Long showId) {
+        return ResponseEntity.ok(showService.getSeatsForShow(showId));
+    }
+
+    // --- Admin Operations (Clears all "shows" cache) ---
+
     @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ShowResponseDto> createShow(@RequestBody ShowRequestDto showRequestDto){
         return new ResponseEntity<>(showService.createShow(showRequestDto), HttpStatus.CREATED);
     }
@@ -38,37 +65,6 @@ public class ShowController {
         return ResponseEntity.ok(showService.getAllShows());
     }
 
-    @GetMapping
-    public ResponseEntity<List<ShowResponseDto>> getShows(
-            @RequestParam(required = false) Long movieId,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) Long theaterId,
-            @RequestParam(required = false)  LocalDate date
-    ){
-        return ResponseEntity.ok(showService.getFilteredShows(movieId, city, theaterId, date));
-    }
-
-    /**
-     * Gets details for a single specific show.
-     * GET /api/shows/1
-     */
-    @GetMapping("/{showId}")
-    public ResponseEntity<ShowResponseDto> getShowById(@PathVariable Long showId) {
-        return ResponseEntity.ok(showService.getShowById(showId));
-    }
-
-    /**
-     * Gets the seat layout for a specific show.
-     * GET /api/shows/1/seats
-     */
-    @GetMapping("/{showId}/seats")
-    public ResponseEntity<List<ShowSeatDto>> getShowSeatLayout(@PathVariable Long showId) {
-        return ResponseEntity.ok(showService.getSeatsForShow(showId));
-    }
-
-    /**
-     * Updates an existing show (Admin Only)
-     */
     @PutMapping("/{showId}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ShowResponseDto> updateShow(
@@ -77,9 +73,6 @@ public class ShowController {
         return ResponseEntity.ok(showService.updateShow(showId, showUpdateRequestDto));
     }
 
-    /**
-     * Deletes a show (Admin Only)
-     */
     @DeleteMapping("/{showId}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteShow(@PathVariable Long showId){

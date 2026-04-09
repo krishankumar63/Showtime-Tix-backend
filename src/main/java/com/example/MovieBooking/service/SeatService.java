@@ -1,7 +1,7 @@
 package com.example.MovieBooking.service;
 
-import com.example.MovieBooking.dto.RequestDto.SeatRequestDto;
-import com.example.MovieBooking.dto.SeatResponseDto; // ⚡ Ensure this import exists
+import com.example.MovieBooking.dto.requestDto.SeatRequestDto;
+import com.example.MovieBooking.dto.responseDto.SeatResponseDto; // ⚡ Ensure this import exists
 import com.example.MovieBooking.entity.Screen;
 import com.example.MovieBooking.entity.Seat;
 import com.example.MovieBooking.repository.ScreenRepository;

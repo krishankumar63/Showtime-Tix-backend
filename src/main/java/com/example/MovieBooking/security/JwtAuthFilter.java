@@ -40,6 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
+
             // Now fetches token from Cookie instead of just the Header
             String token = getJwtFromRequest(request);
             // Log whether token was found or not

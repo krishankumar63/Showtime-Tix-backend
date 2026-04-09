@@ -1,6 +1,6 @@
 package com.example.MovieBooking.controller;
-import com.example.MovieBooking.dto.BookingResponseDto;
-import com.example.MovieBooking.dto.RequestDto.BookingRequestDto;
+import com.example.MovieBooking.dto.responseDto.BookingResponseDto;
+import com.example.MovieBooking.dto.requestDto.BookingRequestDto;
 import com.example.MovieBooking.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ public class BookingController {
 
 
     @PostMapping("/createbooking")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<BookingResponseDto> createBooking(
             @RequestBody BookingRequestDto bookingRequestDto,
             Principal principal) {

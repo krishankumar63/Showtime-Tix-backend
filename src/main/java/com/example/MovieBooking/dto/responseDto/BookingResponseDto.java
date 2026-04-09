@@ -1,4 +1,4 @@
-package com.example.MovieBooking.dto;
+package com.example.MovieBooking.dto.responseDto;
 
 import com.example.MovieBooking.entity.type.BookingStatus;
 import lombok.Data;

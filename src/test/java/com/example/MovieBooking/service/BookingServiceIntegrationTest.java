@@ -1,6 +1,6 @@
 package com.example.MovieBooking.service;
 
-import com.example.MovieBooking.dto.RequestDto.BookingRequestDto;
+import com.example.MovieBooking.dto.requestDto.BookingRequestDto;
 import com.example.MovieBooking.entity.ShowSeat;
 import com.example.MovieBooking.entity.User;
 import com.example.MovieBooking.entity.type.SeatStatus;

@@ -1,12 +1,14 @@
 package com.example.MovieBooking.controller;
 
-import com.example.MovieBooking.dto.RequestDto.TheaterRequestDto;
-import com.example.MovieBooking.dto.ShowResponseDto;
-import com.example.MovieBooking.dto.TheaterResponseDto;
-import com.example.MovieBooking.dto.TheaterResponseDto;
+import com.example.MovieBooking.dto.requestDto.TheaterRequestDto;
+import com.example.MovieBooking.dto.responseDto.ShowResponseDto;
+import com.example.MovieBooking.dto.responseDto.TheaterResponseDto;
 import com.example.MovieBooking.service.ShowService;
 import com.example.MovieBooking.service.TheaterService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,26 +26,28 @@ public class TheaterController {
     @Autowired
     private ShowService showService;
 
-    // --- Public Endpoints (for any user) ---
+    // --- Public Endpoints ---
 
     @GetMapping
     public ResponseEntity<?> getAllTheaters() {
         List<TheaterResponseDto> theaters = theaterService.getAllTheaters();
         return new ResponseEntity<>(theaters, HttpStatus.OK);
     }
+
     @GetMapping("/city")
     public ResponseEntity<?> getTheaterByLocation(@RequestParam String city) {
         List<TheaterResponseDto> theaters = theaterService.findTheatersByCity(city);
         return new ResponseEntity<>(theaters, HttpStatus.OK);
     }
 
+    // We cache this under "shows" because the data being returned is ShowResponseDto
     @GetMapping("/{theaterId}/shows")
     public ResponseEntity<List<ShowResponseDto>> getShowsForTheater(@PathVariable Long theaterId) {
-        List<ShowResponseDto> shows = showService.getShowsByTheaterId(theaterId); //its inside show service
+        List<ShowResponseDto> shows = showService.getShowsByTheaterId(theaterId);
         return ResponseEntity.ok(shows);
     }
 
-    // --- Admin Endpoints (Secured) ---
+    // --- Admin Endpoints ---
 
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -52,6 +56,7 @@ public class TheaterController {
         return new ResponseEntity<>(newTheater, HttpStatus.CREATED);
     }
 
+    // Updating a theater might change its city, affecting city-based lists
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateTheater(@PathVariable Long id, @RequestBody TheaterRequestDto theaterDTO) {
@@ -59,6 +64,7 @@ public class TheaterController {
         return new ResponseEntity<>(updatedTheater, HttpStatus.OK);
     }
 
+    // Deleting a theater invalidates both theater lists and any cached shows for that theater
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> deleteTheater(@PathVariable Long id) {

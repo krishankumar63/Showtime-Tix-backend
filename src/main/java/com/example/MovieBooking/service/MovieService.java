@@ -3,18 +3,20 @@ package com.example.MovieBooking.service;
 import com.example.MovieBooking.dto.OmdbDetailDto;
 import com.example.MovieBooking.dto.OmdbSearchResponse;
 import com.example.MovieBooking.dto.OmdbSearchResult;
-import com.example.MovieBooking.dto.RequestDto.MovieRequestDto;
-import com.example.MovieBooking.dto.MovieResponseDto;
+import com.example.MovieBooking.dto.requestDto.MovieRequestDto;
+import com.example.MovieBooking.dto.responseDto.MovieResponseDto;
 import com.example.MovieBooking.entity.Movie;
 import com.example.MovieBooking.repository.MovieRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +37,8 @@ public class MovieService {
                 ? response.getSearchResults() : List.of();
     }
 
+    @Transactional
+    @CacheEvict(cacheNames = "movies", allEntries = true)
     public MovieResponseDto importMovieByImdbId(String imdbId) {
         String url = "http://www.omdbapi.com/?apikey=" + apiKey + "&i=" + imdbId + "&plot=full";
         OmdbDetailDto detail = restTemplate.getForObject(url, OmdbDetailDto.class);
@@ -58,30 +62,44 @@ public class MovieService {
         return convertToDto(savedMovie);
     }
 
-    public MovieResponseDto addMovie(MovieRequestDto movieRequestDto) {
-        Movie movie = modelMapper.map(movieRequestDto, Movie.class);
+    @Transactional
+    @CacheEvict(cacheNames = "movies", allEntries = true)
+    public MovieResponseDto addMovie(MovieRequestDto dto) {
+
+        if (dto.getTitle() == null || dto.getLanguage() == null ||
+                dto.getGenre() == null || dto.getDuration() == null) {
+            throw new RuntimeException("Required fields missing");
+        }
+
+        Movie movie = modelMapper.map(dto, Movie.class);
+
         Movie savedMovie = movieRepository.save(movie);
+
         return convertToDto(savedMovie);
     }
 
+    @Cacheable(cacheNames = "movies", key = "'all'")
     public List<MovieResponseDto> getAllMovies() {
         return movieRepository.findAll().stream()
                 .map(this::convertToDto)
                 .toList();
     }
 
+    @Cacheable(cacheNames = "movies", key = "'genre-' + #genre")
     public List<MovieResponseDto> getMoviesByGenre(String genre) {
         List<Movie> movies = movieRepository.findByGenre(genre)
                 .orElseThrow(() -> new RuntimeException("No movies found for genre: " + genre));
         return movies.stream().map(this::convertToDto).toList();
     }
 
+    @Cacheable(cacheNames = "movies", key = "'lang-' + #language")
     public List<MovieResponseDto> getMoviesByLanguage(String language) {
         List<Movie> movies = movieRepository.findByLanguage(language)
                 .orElseThrow(() -> new RuntimeException("No movies found for language: " + language));
         return movies.stream().map(this::convertToDto).toList();
     }
 
+    @Cacheable(cacheNames = "movies", key = "'search-' + #title")
     public List<MovieResponseDto> searchMovies(String title) {
         return movieRepository.findByTitleContainingIgnoreCase(title)
                 .stream()
@@ -89,11 +107,12 @@ public class MovieService {
                 .collect(Collectors.toList());
     }
 
-
+    @CacheEvict(cacheNames = "movies", allEntries = true)
     public void deleteMovie(Long id) {
         movieRepository.deleteById(id);
     }
 
+    @Cacheable(cacheNames = "movies", key = "'id-' + #id")
     public MovieResponseDto getMovieById(Long id) {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Movie not found with id: " + id));

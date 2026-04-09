@@ -1,11 +1,17 @@
-package com.example.MovieBooking.dto;
+package com.example.MovieBooking.dto.responseDto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 // @Data includes @Getter, @Setter, @ToString, @EqualsAndHashCode, @NoArgsConstructor
 @Data
-public class ShowResponseDto {
+@NoArgsConstructor
+@AllArgsConstructor
+public class ShowResponseDto implements Serializable {
 
     private Long id;
     private LocalDateTime startTime;

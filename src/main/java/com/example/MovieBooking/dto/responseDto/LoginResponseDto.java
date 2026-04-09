@@ -1,4 +1,4 @@
-package com.example.MovieBooking.dto.RequestDto;
+package com.example.MovieBooking.dto.responseDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

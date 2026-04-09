@@ -1,6 +1,6 @@
 package com.example.MovieBooking.service;
 
-import com.example.MovieBooking.dto.RequestDto.RegisterDto;
+import com.example.MovieBooking.dto.requestDto.RegisterDto;
 import com.example.MovieBooking.entity.User;
 import com.example.MovieBooking.entity.type.AuthProvider;
 import com.example.MovieBooking.entity.type.Role;
@@ -95,7 +95,7 @@ class AuthServiceImplTest {
         assertThat(savedUser.getUsername()).isEqualTo("testuser");
         assertThat(savedUser.getEmail()).isEqualTo("test@example.com");
         assertThat(savedUser.getPassword()).isEqualTo("hashedPassword123");
-        assertThat(savedUser.getAuthProvider()).isEqualTo(AuthProvider.LOCAL);
+        assertThat(savedUser.getProviderType()).isEqualTo(AuthProvider.LOCAL);
         assertThat(savedUser.getRoles()).contains(Role.ROLE_USER);
     }
 

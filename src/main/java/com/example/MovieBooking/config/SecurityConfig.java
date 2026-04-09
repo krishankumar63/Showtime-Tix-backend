@@ -1,6 +1,5 @@
 package com.example.MovieBooking.config;
 
-import com.example.MovieBooking.security.Auth2SucessHandler;
 import com.example.MovieBooking.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,6 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter authenticationFilter;
-    private final Auth2SucessHandler auth2SucessHandler;
     private final HandlerExceptionResolver handlerExceptionResolver;
     @Value("${frontend.url:https://showtime-tix-frontend45.vercel.app}")
     private String frontendUrl;
@@ -45,7 +43,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/login/**", "/oauth2/**","/favicon.ico","/api/public/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/login/**","/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/movies/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/theaters/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/shows/**").permitAll()
@@ -54,13 +52,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(auth2SucessHandler)
-                        .failureHandler((request, response, exception) -> {
-                            log.error("OAuth2 Login Failed: {}", exception.getMessage());
-                            handlerExceptionResolver.resolveException(request, response, null, exception);
-                        })
-                )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             handlerExceptionResolver.resolveException(request, response, null, authException);
@@ -71,6 +62,7 @@ public class SecurityConfig {
                 )
                 .build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

@@ -1,12 +1,15 @@
 package com.example.MovieBooking.service;
 
-import com.example.MovieBooking.dto.RequestDto.ScreenRequestDto;
-import com.example.MovieBooking.dto.ScreenResponseDto;
+import com.example.MovieBooking.dto.requestDto.ScreenRequestDto;
+import com.example.MovieBooking.dto.responseDto.ScreenResponseDto;
 import com.example.MovieBooking.entity.Screen;
 import com.example.MovieBooking.entity.Theater;
 import com.example.MovieBooking.repository.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +37,7 @@ public class ScreenService {
     @Autowired
     private ModelMapper modelMapper;
 
-
+    @CacheEvict(cacheNames = "screens", allEntries = true)
     public ScreenResponseDto addScreen(ScreenRequestDto screenRequestDto) {
 
         // 1. Find the parent Theater entity
@@ -55,7 +58,7 @@ public class ScreenService {
         return mapToScreenResponseDto(savedScreen);
     }
 
-
+    @Cacheable(cacheNames = "screens", key = "'theater-' + #theaterId")
     public List<ScreenResponseDto> getScreensByTheater(Long theaterId) {
         // 1. Find all screens for the theater
         List<Screen> screens = screenRepository.findByTheaterId(theaterId);
@@ -67,6 +70,10 @@ public class ScreenService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "screens", allEntries = true),
+            @CacheEvict(cacheNames = "shows", allEntries = true)
+    })
     public void deleteScreen(Long id) {
         Screen screen = screenRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Screen not found"));

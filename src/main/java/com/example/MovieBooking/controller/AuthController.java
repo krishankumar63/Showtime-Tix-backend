@@ -1,9 +1,9 @@
 package com.example.MovieBooking.controller;
 
-import com.example.MovieBooking.dto.RequestDto.LoginDto;
-import com.example.MovieBooking.dto.RequestDto.RefreshTokenRequestDto;
-import com.example.MovieBooking.dto.RequestDto.RegisterDto;
-import com.example.MovieBooking.dto.UserResponseDto;
+import com.example.MovieBooking.dto.requestDto.LoginDto;
+import com.example.MovieBooking.dto.requestDto.RefreshTokenRequestDto;
+import com.example.MovieBooking.dto.requestDto.RegisterDto;
+import com.example.MovieBooking.dto.responseDto.UserResponseDto;
 import com.example.MovieBooking.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

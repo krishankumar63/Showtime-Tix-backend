@@ -1,11 +1,13 @@
-package com.example.MovieBooking.dto;
+package com.example.MovieBooking.dto.responseDto;
 import lombok.*;
+
+import java.io.Serializable;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MovieResponseDto {
+public class MovieResponseDto implements Serializable {
     private Long id;
     private String title;
     private String plot;      // ⚡ Matches updated Entity
