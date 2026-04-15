@@ -22,7 +22,7 @@ public class Screen {
     private Long id;
 
     @Column(nullable = false)
-    private String name; // e.g., "Audi 1", "IMAX"
+    private String name; // e.g., "Audi 1", "Audi 2"
 
     @Column(nullable = false)
     private String screenType; // e.g., "IMAX", "3D", "REGULAR"

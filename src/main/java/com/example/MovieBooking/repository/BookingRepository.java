@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface BookingRepository extends JpaRepository<Booking,Long> {
+public interface BookingRepository  {
     List<Booking> findByUserId(Long id);
 
     Optional<Booking> findByIdAndUserId(Long bookingId, Long id);

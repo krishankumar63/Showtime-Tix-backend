@@ -19,7 +19,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = "bookings")
+@ToString(exclude = "bookings") //incase if we want to print user object
 public class User {
 
     @Id

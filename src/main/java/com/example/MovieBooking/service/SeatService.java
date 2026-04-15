@@ -59,7 +59,7 @@ public class SeatService {
             dto.setSeatNumber(seat.getSeatNumber());
             dto.setSeatType(seat.getSeatType());
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @Transactional

@@ -21,19 +21,14 @@ public class ScreenService {
 
     @Autowired
     private ScreenRepository screenRepository;
-
     @Autowired
     private ShowRepository showRepository;
-
     @Autowired
     private ShowSeatRepository showSeatRepository;
-
     @Autowired
     private SeatRepository seatRepository;
-
     @Autowired
     private TheaterRepository theaterRepository;
-
     @Autowired
     private ModelMapper modelMapper;
 
@@ -87,13 +82,10 @@ public class ScreenService {
 
         // Step A: Remove ShowSeats (Linked to specific show timings)
         showSeatRepository.deleteByShowScreenId(id);
-
         // Step B: Remove Shows (The movie timings themselves)
         showRepository.deleteByScreenId(id);
-
         // Step C: Remove Seats (The physical layout of the screen)
         seatRepository.deleteByScreenId(id);
-
         // Step D: Remove the Screen
         screenRepository.delete(screen);
     }

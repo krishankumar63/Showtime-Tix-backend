@@ -37,7 +37,6 @@ public class TheaterService {
         theater.setAddress(requestDto.getAddress());
         theater.setCity(requestDto.getCity());
 
-        // Geocoding call removed to avoid external API overhead
         Theater savedTheater = theaterRepository.save(theater);
         LOGGER.info("Theater created successfully: {}", savedTheater.getName());
 

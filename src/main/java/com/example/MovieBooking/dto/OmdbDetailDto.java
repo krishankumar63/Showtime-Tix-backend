@@ -13,6 +13,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OmdbDetailDto implements Serializable {
+    //to fill db
     @JsonProperty("Title")
     private String title;
 

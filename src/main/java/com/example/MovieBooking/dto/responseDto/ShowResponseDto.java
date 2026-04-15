@@ -25,7 +25,4 @@ public class ShowResponseDto implements Serializable {
     private String screenName;
     private String theaterName;
 
-    // Note: We intentionally do NOT include List<ShowSeatDto> here.
-    // That data should be fetched from a separate endpoint like:
-    // GET /api/shows/{showId}/seats
 }

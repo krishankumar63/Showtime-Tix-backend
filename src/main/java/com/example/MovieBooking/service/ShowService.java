@@ -37,6 +37,7 @@ public class ShowService {
     @Transactional
     @CacheEvict(cacheNames = "shows", allEntries = true)
     public ShowResponseDto createShow(ShowRequestDto showRequestDto) {
+        //first fetch Movie , Screen already existing
         Movie movie = movieRepository.findById(showRequestDto.getMovieId())
                 .orElseThrow(() -> new RuntimeException("Movie not found"));
 
@@ -49,16 +50,21 @@ public class ShowService {
         show.setMovie(movie);
         show.setScreen(screen);
 
+        // Have to first save the Show because ShowSeat needs show_id (FK) to link
         Show savedShow = showRepository.save(show);
+        //Untill now 1st part of this method is done Show is created and linked with a Movie and Screen
+        //Now we have to generate ShowSeat based on the seats available in the screen and the price configuration
+        // provided in the request and connect this to this Show by id
 
         // --- GENERATE SHOWSEAT INVENTORY ---
-        Map<String, BigDecimal> seatPriceConfig = showRequestDto.getSeatPrices();
         List<Seat> templateSeats = seatRepository.findByScreenId(screen.getId());
+        Map<String, BigDecimal> seatPriceConfig = showRequestDto.getSeatPrices();
 
         if (templateSeats.isEmpty()) {
             throw new RuntimeException("No base seats found for Screen ID: " + screen.getId());
         }
 
+        //For EACH seat: Create a ShowSeat and Attach-show,seat,price,status
         List<ShowSeat> showSeatsToSave = templateSeats.stream()
                 .map(seat -> {
                     BigDecimal price = null;
@@ -107,7 +113,9 @@ public class ShowService {
      */
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = "shows", key = "{#movieId, #city, #theaterId, #date}")
+    // composite key with array like structure -- shows::SimpleKey [101,Mumbai,5,2026-04-15]
     public List<ShowResponseDto> getFilteredShows(Long movieId, String city, Long theaterId, LocalDate date) {
+        // Convert LocalDate to LocalDateTime range for the entire day
         LocalDateTime start = (date != null) ? date.atStartOfDay() : null;
         LocalDateTime end = (date != null) ? date.atTime(LocalTime.MAX) : null;
 
@@ -115,7 +123,7 @@ public class ShowService {
 
         return shows.stream()
                 .map(this::mapToShowResponseDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -124,6 +132,15 @@ public class ShowService {
         Show show = showRepository.findById(showId)
                 .orElseThrow(() -> new RuntimeException("Show not found"));
         return mapToShowResponseDto(show);
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "shows", key = "'title-' + #title")
+    public List<ShowResponseDto> getShowsByMovieTitle(String title) {
+        List<Show> shows = showRepository.findByMovie_TitleContainingIgnoreCase(title);
+        return shows.stream()
+                .map(this::mapToShowResponseDto)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -139,7 +156,7 @@ public class ShowService {
                     dto.setPrice(showSeat.getPrice());
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
@@ -174,22 +191,22 @@ public class ShowService {
         showRepository.deleteById(showId);
     }
 
-    @Transactional(readOnly = true)
-    public List<ShowResponseDto> getShowsByMovieId(Long movieId) {
-        return showRepository.findByMovieId(movieId).stream()
-                .map(this::mapToShowResponseDto)
-                .collect(Collectors.toList());
-    }
+//    @Transactional(readOnly = true)
+//    public List<ShowResponseDto> getShowsByMovieId(Long movieId) {
+//        return showRepository.findByMovieId(movieId).stream()
+//                .map(this::mapToShowResponseDto)
+//                .collect(Collectors.toList());
+//    }
 
-    @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "shows", key = "'theater-' + #theaterId")
-    public List<ShowResponseDto> getShowsByTheaterId(Long theaterId) {
-        List<Screen> screens = screenRepository.findByTheaterId(theaterId);
-        return screens.stream()
-                .flatMap(screen -> showRepository.findByScreenId(screen.getId()).stream())
-                .map(this::mapToShowResponseDto)
-                .collect(Collectors.toList());
-    }
+//    @Transactional(readOnly = true)
+//    @Cacheable(cacheNames = "shows", key = "'theater-' + #theaterId")
+//    public List<ShowResponseDto> getShowsByTheaterId(Long theaterId) {
+//        List<Screen> screens = screenRepository.findByTheaterId(theaterId);
+//        return screens.stream()
+//                .flatMap(screen -> showRepository.findByScreenId(screen.getId()).stream())
+//                .map(this::mapToShowResponseDto)
+//                .collect(Collectors.toList());
+//    }
 
     private ShowResponseDto mapToShowResponseDto(Show show) {
         ShowResponseDto dto = modelMapper.map(show, ShowResponseDto.class);

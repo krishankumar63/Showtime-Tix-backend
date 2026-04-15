@@ -7,6 +7,7 @@ import java.util.List;
 
 @Data
 public class OmdbSearchResponse {
+    //to show admins movie to import
     @JsonProperty("Search")
     private List<OmdbSearchResult> searchResults;
 }

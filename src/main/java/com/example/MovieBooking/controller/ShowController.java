@@ -42,6 +42,11 @@ public class ShowController {
         return ResponseEntity.ok(showService.getShowById(showId));
     }
 
+    @GetMapping("/movie")
+    public ResponseEntity<List<ShowResponseDto>> getShowsByMovieTitle(@RequestParam String title) {
+        return ResponseEntity.ok(showService.getShowsByMovieTitle(title));
+    }
+
     /**
      * NO CACHING HERE.
      * Always hit the DB for real-time seat availability.
